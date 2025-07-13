@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный КЛЮЧ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#317EFB"/> <!-- Цвет верхней панели браузера на Android -->
+</head>
+<body>
+    <div class="container">
+        <h1>Радио</h1>
+        <button id="playPauseButton">Включить Радио</button>
+        <audio id="audioPlayer" src="https://myradio24.org/52340" preload="none"></audio>
+        <p id="statusMessage"></p>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Регистрация Service Worker для PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => {
+                        console.log('Service Worker зарегистрирован!', reg);
+                    })
+                    .catch(err => {
+                        console.log('Ошибка регистрации Service Worker:', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
