@@ -4,32 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Музыкальный КЛЮЧ</title>
+
+    <!-- PWA Manifest для Android и Chrome -->
+    <!-- Убедитесь, что manifest.json находится в корневой директории -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Иконки для PWA (Android/Chrome - fallback если manifest не загружен или для других браузеров) -->
+    <!-- Эти иконки могут быть использованы браузерами как "favicon" или для других целей -->
+    <link rel="icon" type="image/png" href="/icons/icon-192x192.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="/icons/icon-512x512.png" sizes="512x512">
+
+    <!-- Мета-теги для iOS (Apple) PWA - КРИТИЧНО для иконок на главный экран iOS -->
+    <!-- Включение режима веб-приложения для iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- Имя приложения на главном экране iOS -->
+    <meta name="apple-mobile-web-app-title" content="Музыкальный КЛЮЧ">
+    <!-- Стиль статус-бара iOS (например, "black-translucent" для полупрозрачного черного) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Иконки для iOS (Apple) PWA - КРИТИЧНО для пользовательской иконки на главном экране iOS -->
+    <!-- Все эти иконки должны существовать по указанным путям в папке /icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
+    <!-- Можно добавить и другие размеры, если у вас есть специфичные для iPad и т.д. -->
+    <!-- Например: <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-76x76.png"> -->
+    <!-- Для заставки при запуске приложения (необязательно, но улучшает UX) -->
+    <!-- <link rel="apple-touch-startup-image" href="/icons/splash-screen.png"> -->
+
+    <!-- Подключение вашего файла стилей -->
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#317EFB"/> <!-- Цвет верхней панели браузера на Android -->
 </head>
 <body>
     <div class="container">
-        <h1>Радио</h1>
-        <button id="playPauseButton">Включить Радио</button>
-        <audio id="audioPlayer" src="https://myradio24.org/52340" preload="none"></audio>
-        <p id="statusMessage"></p>
+        <h1>Музыкальный КЛЮЧ</h1>
+        <!-- Убедитесь, что этот URL потока радио начинается с HTTPS, если вы развернули на HTTPS -->
+        <audio id="radioPlayer" src="https - FORBIDDEN - myradio24.org/52340" preload="none"></audio>
+        <button id="togglePlayPause">Включить радио</button>
+        <p id="statusMessage">Ожидание...</p>
     </div>
 
+    <!-- Подключение вашего основного скрипта -->
     <script src="script.js"></script>
-    <script>
-        // Регистрация Service Worker для PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => {
-                        console.log('Service Worker зарегистрирован!', reg);
-                    })
-                    .catch(err => {
-                        console.log('Ошибка регистрации Service Worker:', err);
-                    });
-            });
-        }
-    </script>
 </body>
 </html>
