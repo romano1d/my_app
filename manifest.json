@@ -1,11 +1,11 @@
 {
-  "name": "Музыкальный КЛЮЧ",
-  "short_name": "Музыкальный КЛЮЧ",
-  "description": "Слушайте ваше любимое радио прямо с главного экрана!",
+  "name": "Музыкальный Ключ",
+  "short_name": "Музыка",
+  "description": "Ваш музыкальный проводник: радио онлайн и полезные инструменты для музыкантов.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f0f2f5",
-  "theme_color": "#3498db",
+  "background_color": "#121212",
+  "theme_color": "#BB86FC",
   "icons": [
     {
       "src": "/icons/icon-152x152.png",
@@ -32,5 +32,7 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "orientation": "portrait",
+  "scope": "/"
 }

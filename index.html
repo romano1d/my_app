@@ -3,49 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Музыкальный КЛЮЧ</title>
+    <title>Музыкальный Ключ</title>
 
-    <!-- PWA Manifest для Android и Chrome -->
-    <!-- Убедитесь, что manifest.json находится в корневой директории -->
+    <!-- PWA meta tags -->
+    <meta name="theme-color" content="#BB86FC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Музыка">
+
+    <!-- Manifest link -->
     <link rel="manifest" href="/manifest.json">
 
-    <!-- Иконки для PWA (Android/Chrome - fallback если manifest не загружен или для других браузеров) -->
-    <!-- Эти иконки могут быть использованы браузерами как "favicon" или для других целей -->
-    <link rel="icon" type="image/png" href="/icons/icon-192x192.png" sizes="192x192">
-    <link rel="icon" type="image/png" href="/icons/icon-512x512.png" sizes="512x512">
-
-    <!-- Мета-теги для iOS (Apple) PWA - КРИТИЧНО для иконок на главный экран iOS -->
-    <!-- Включение режима веб-приложения для iOS Safari -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- Имя приложения на главном экране iOS -->
-    <meta name="apple-mobile-web-app-title" content="Музыкальный КЛЮЧ">
-    <!-- Стиль статус-бара iOS (например, "black-translucent" для полупрозрачного черного) -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <!-- Иконки для iOS (Apple) PWA - КРИТИЧНО для пользовательской иконки на главном экране iOS -->
-    <!-- Все эти иконки должны существовать по указанным путям в папке /icons -->
-    <link rel="apple-touch-icon" href="/icons/icon-120x120.png">
+    <!-- Apple Touch Icons (для iOS, чтобы приложение выглядело как нативное при добавлении на главный экран) -->
     <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
     <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
-    <!-- Можно добавить и другие размеры, если у вас есть специфичные для iPad и т.д. -->
-    <!-- Например: <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-76x76.png"> -->
-    <!-- Для заставки при запуске приложения (необязательно, но улучшает UX) -->
-    <!-- <link rel="apple-touch-startup-image" href="/icons/splash-screen.png"> -->
 
-    <!-- Подключение вашего файла стилей -->
+    <!-- Стандартный favicon (опционально, т.к. manifest покрывает большинство случаев) -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Музыкальный КЛЮЧ</h1>
-        <!-- Убедитесь, что этот URL потока радио начинается с HTTPS, если вы развернули на HTTPS -->
-        <audio id="radioPlayer" src="https://myradio24.org/52340"></audio>
-        <button id="togglePlayPause">Включить радио</button>
-        <p id="statusMessage">Ожидание...</p>
-    </div>
+    <header>
+        <h1>Музыкальный Ключ</h1>
+    </header>
 
-    <!-- Подключение вашего основного скрипта -->
-    <script src="script.js"></script>
+    <main>
+        <section id="radio-player">
+            <h2>Радио Онлайн</h2>
+            <audio id="audioPlayer" controls>
+                <source src="https://myradio24.org/52340">
+                Ваш браузер не поддерживает аудио элемент.
+            </audio>
+            <button id="playPauseButton">Воспроизвести</button>
+            <p id="playerStatus">Остановлено</p>
+        </section>
+
+        <!-- Дополнительные разделы для музыкальных инструментов и т.д. -->
+        <section id="tools">
+            <h2>Инструменты для Музыкантов</h2>
+            <p>Здесь будут размещены полезные инструменты (метроном, тюнер и т.д.).</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Музыкальный Ключ</p>
+    </footer>
+
+    <scriptsrc="script.js"></script>
+    <script>
+        // Регистрация Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker зарегистрирован успешно:', registration);
+                    })
+                    .catch(error => {
+                        console.error('Ошибка регистрации Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
