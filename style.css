@@ -1,29 +1,31 @@
+/* style.css */
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: Arial,sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #f0f2f5;
+    background-color: #6c0483;
     color: #333;
     text-align: center;
-}
-
-.container {
-    background-color: #fff;
-    padding: 30px 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 90%;
+    padding: 20px;
     box-sizing: border-box;
 }
 
+.container {
+    background-color: #cf05c9;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+}
+
 h1 {
-    color: #3498db;
+    color: #fff;
     margin-bottom: 30px;
-    font-size: 1.8em;
 }
 
 button {
@@ -31,36 +33,18 @@ button {
     color: white;
     border: none;
     padding: 15px 30px;
+    font-size: 1.2em;
     border-radius: 8px;
-    font-size: 1.1em;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    outline: none;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 20px;
 }
 
 button:hover {
-    background-color: #287bbd;
-    transform: translateY(-2px);
+    background-color: #043b6d;
+    transform: scale(1.05); /* Added a common transform value for a slight enlarge effect */
 }
-
-button:active {
-    background-color: #216d9b;
-    transform: translateY(0);
-}
-
-.status {
-    margin-top: 20px;
-    font-size: 0.9em;
-    color: #666;
-    min-height: 20px; /* Чтобы избежать "прыжков" при обновлении текста */
-}
-
-/* Класс .hint был удален из HTML, поэтому его можно удалить и отсюда, если он больше не нужен. */
-/* .hint {
-    margin-top: 40px;
-    font-size: 0.8em;
-    color: #999;
-    line-height: 1.5;
-    text-align: left;
-} */
+/* The comment "ВОТ ЭТА ОТКРЫВАЮЩАЯ СКОБКА ОТСУТСТВОВАЛА" was misleading in the provided context,
+   as the Ⓝbody {Ⓝ opening brace was present. The issue was the incomplete Ⓝbutton:hoverⓃ rule. */
