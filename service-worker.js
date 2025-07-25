@@ -65,7 +65,7 @@ self.addEventListener('activate', event => {
 // 4. Fetch Event: Intercepts network requests and serves from cache or network
 self.addEventListener('fetch', event => {
     // IMPORTANT: Do NOT cache the live audio stream. It should always be fetched from the network.
-    const streamUrl = 'https - FORBIDDEN - myradio24.org/52340';
+    const streamUrl = 'https://myradio24.org/52340';
 
     if (event.request.url.includes(streamUrl)) {
         // For the radio stream, always go to the network
