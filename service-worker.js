@@ -1,32 +1,37 @@
-const CACHE_NAME = 'radio-player-cache-v1';
-// Определяем URL радиопотока здесь тоже, чтобы исключить его из кэширования (обновлено)
-const STREAM_URL = 'https://myradio24.org/52340'; 
+// service-worker.js
 
-// Ресурсы, которые будут кэшированы при установке Service Worker
+const CACHE_NAME = 'music-key-cache-v1'; // Увеличивайте 'v1' на 'v2', 'v3' и т.д., когда хотите принудительно обновить кэш.
+
+// Список URL-адресов для кэширования во время установки
 const urlsToCache = [
-    '/', // Главная страница (если start_url="./")
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json',
-    // Добавьте пути к иконкам, которые вы указали в manifest.json
+    '/', // Корневой путь приложения
+    'index.html',
+    'style.css',
+    'script.js',
+    'manifest.json',
+    // Иконки, на которые ссылаются manifest и HTML head
     '/icons/icon-152x152.png',
     '/icons/icon-167x167.png',
     '/icons/icon-180x180.png',
     '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png',
-    '/icons/maskable_icon.png' // Если добавили в манифест
-    // ... другие необходимые ресурсы
+    '/icons/icon-512x512.png'
+    // НЕ кэшируйте URL аудиопотока здесь (https - FORBIDDEN - myradio24.org/52340),
+    // так как это динамический поток, который лучше обрабатывать непосредственно медиа-элементом браузера.
 ];
 
+// 1. Событие установки: Кэширование статических ресурсов
 self.addEventListener('install', event => {
-    console.log('Service Worker: Установка...');
+    console.log('Service Worker: Начинаю установку...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Service Worker: Кэширую основные ресурсы:', urlsToCache);
-                // Фильтруем STREAM_URL, чтобы он не попал в кэш
-                return cache.addAll(urlsToCache.filter(url => url !== STREAM_URL)); 
+                console.log('Service Worker: Кэширую основные ресурсы приложения.');
+                return cache.addAll(urlsToCache);
+            })
+            .then(() => {
+                console.log('Service Worker: Установка завершена, пропускаю ожидание.');
+                // Принудительно заставляет ожидающий Service Worker стать активным.
+                return self.skipWaiting();
             })
             .catch(error => {
                 console.error('Service Worker: Ошибка при кэшировании во время установки:', error);
@@ -34,8 +39,9 @@ self.addEventListener('install', event => {
     );
 });
 
+// 2. Событие активации: Очистка старых кэшей
 self.addEventListener('activate', event => {
-    console.log('Service Worker: Активация...');
+    console.log('Service Worker: Активирован. Очищаю старые кэши...');
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
@@ -46,62 +52,72 @@ self.addEventListener('activate', event => {
                     }
                 })
             );
+        }).then(() => {
+            console.log('Service Worker: Активация завершена, беру на себя контроль над клиентами.');
+            // Это гарантирует, что Service Worker контролирует существующие клиенты сразу после активации.
+            return self.clients.claim();
         })
     );
 });
 
+// 3. Событие fetch: Перехват сетевых запросов
 self.addEventListener('fetch', event => {
-    // Если запрос относится к потоковому аудио, просто пропускаем его через сеть БЕЗ кэширования
-    // Убедитесь, что проверяете только hostname или часть пути, если URL может меняться динамически
-    // Для потока 'https - FORBIDDEN - myradio24.org/52340' достаточно точного сравнения URL
-    if (event.request.url === STREAM_URL) {
-        // console.log('Service Worker: Пропускаю радиопоток:', event.request.url);
+    const requestUrl = new URL(event.request.url);
+
+    // Определяем, является ли запрос запросом аудиопотока
+    const audioStreamHost = 'myradio24.org'; // Или полный URL 'https - FORBIDDEN - myradio24.org/52340'
+    if (requestUrl.hostname.includes(audioStreamHost)) {
+        // Для аудиопотока напрямую обращаемся к сети.
+        // Не кэшируем сам поток через Service Worker.
+        console.log('Service Worker: Запрос аудиопотока, пропускаю кэш:', event.request.url);
         event.respondWith(fetch(event.request));
-        return; 
+        return; // Важно вернуться здесь, чтобы предотвратить дальнейшую обработку
     }
 
-    // Для остальных ресурсов, используем стратегию "кэш, затем сеть"
+    // Для всех остальных запросов (статические ресурсы)
     event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) {
-                // console.log('Service Worker: Отдаю из кэша:', event.request.url);
-                return cachedResponse;
-            }
+        caches.match(event.request)
+            .then(response => {
+                // Если найдено в кэше - возвращаем ответ
+                if (response) {
+                    console.log('Service Worker:Обслуживаю из кэша:', event.request.url);
+                    return response;
+                }
+                // Если не найдено в кэше - получаем из сети
+                console.log('Service Worker: Обслуживаю из сети (нет в кэше):', event.request.url);
+                return fetch(event.request).then(
+                    response => {
+                        // Проверяем, получили ли мы действительный ответ
+                        // (например, чтобы не кэшировать ошибки 404 или ответы не от сети)
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
 
-            // Важно: fetch(event.request.clone()) если запрос имеет тело (POST, PUT),
-            // но для GET запросов это обычно не требуется.
-            return fetch(event.request).then(
-                networkResponse => {
-                    // Проверяем, что ответ действителен (статус 200, не редирект, тип basic)
-                    // type 'basic' означает запрос к тому же источнику
-                    if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-                        return networkResponse;
+                        // ВАЖНО: Клонируйте ответ. Ответ — это поток
+                        // и может быть использован только один раз. Мы должны клонировать его, чтобы
+                        // и браузер, и кэш могли его использовать.
+                        const responseToCache = response.clone();
+
+                        // Кэшируем только если метод запроса GET
+                        if (event.request.method === 'GET') {
+                            caches.open(CACHE_NAME)
+                                .then(cache => {
+                                    cache.put(event.request, responseToCache);
+                                    console.log('Service Worker: Кэширую новый ресурс:', event.request.url);
+                                })
+                                .catch(e => {
+                                    console.error('Service Worker: Ошибка при кэшировании нового ресурса:', event.request.url, e);
+                                });
+                        }
+                        return response;
                     }
-
-                    // Клонируем ответ, так как его нужно использовать дважды
-                    const responseToCache = networkResponse.clone();
-
-                    caches.open(CACHE_NAME).then(cache => {
-                        console.log('Service Worker: Кэширую новый ресурс:', event.request.url);
-                        cache.put(event.request, responseToCache);
-                    });
-
-                    return networkResponse;
-                }
-            ).catch(error => {
-                // Этот блок обрабатывает ошибки сети для fetch
-                console.error('Service Worker: Ошибка сетевого запроса или ресурс не найден в кэше:', event.request.url, error);
-                
-                // Если запрос был для навигации (т.е. загрузка HTML страницы)
-                if (event.request.mode === 'navigate') {
-                    // Можно вернуть оффлайн-страницу
-                    // return caches.match('/offline.html'); 
-                }
-                // Для других типов запросов (изображения, скрипты, CSS)
-                // можно бросить ошибку, чтобы браузер знал о сбое,
-                // или вернуть какой-либо плейсхолдер.
-                throw error; 
-            });
-        })
+                );
+            })
+            .catch(error => {
+                console.error('Service Worker: Ошибка при обработке запроса:', error);
+                // Здесь можно вернуть запасную страницу для сценариев офлайн,
+                // например, return caches.match('/offline.html');
+                // Для радио-плеера, если базовые ресурсы не загружаются, приложение может просто не работать.
+            })
     );
 });

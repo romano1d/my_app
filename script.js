@@ -1,117 +1,126 @@
-// Определяем URL потока как константу (обновлено на ваш URL)
-const streamUrl = 'https://myradio24.org/52340'; 
-let audio = null; // Объявляем audio как изменяемую переменную
+// script.js
 
-// Обновлены ID элементов, чтобы соответствовать index.html
-const playPauseButton = document.getElementById('togglePlayPause');
-const playIcon = document.getElementById('playIcon');
-const pauseIcon = document.getElementById('pauseIcon');
-const statusText = document.getElementById('statusMessage'); // Обновлено
-
-let isPlaying = false; // Состояние воспроизведения
-
-function startPlayback() {
-    if (!audio) {
-        audio = new Audio(); // Создаем объект Audio, если его еще нет
-        // Опционально: можно добавить обработчики событий для аудио
-        audio.addEventListener('playing', () => {
-            console.log('Аудио начало играть');
-            statusText.textContent = 'Воспроизведение';
-            playPauseButton.disabled = false;
-        });
-        audio.addEventListener('waiting', () => {
-            console.log('Буферизация...');
-            statusText.textContent = 'Буферизация...';
-            playPauseButton.disabled = true;
-        });
-        audio.addEventListener('error', (e) => {
-            console.error('Ошибка в аудио:', e);
-            statusText.textContent = 'Ошибка воспроизведения';
-            playPauseButton.disabled = false;
-            isPlaying = false;
-            updateButtonState();
-            alert('Не удалось начать воспроизведение. Поток недоступен или проблемы с сетью.');
-        });
-        audio.addEventListener('ended', () => {
-            console.log('Поток завершился. Возможно, потеряно соединение.');
-            statusText.textContent = 'Поток завершен. Переподключение...';
-            // Можно попытаться перезапустить или просто остановить
-            stopPlayback();
-        });
-    }
-
-    // Всегда устанавливаем src и загружаем его, чтобы гарантировать начало с текущего момента
-    audio.src = streamUrl;
-    audio.load(); // Загружаем поток заново
-    
-    statusText.textContent = 'Подключение...';
-    playPauseButton.disabled = true; // Отключаем кнопку на время подключения
-
-    audio.play().then(() => {
-        // isPlaying и обновление статуса теперь происходит в обработчике 'playing'
-        // чтобы избежать ложного статуса "Воспроизведение" до того, как звук реально пошел
-        isPlaying = true; // Устанавливаем здесь для корректного состояния кнопки
-        updateButtonState();
-        // statusText.textContent и playPauseButton.disabled будут обновлены в 'playing'
-        console.log('Аудио поток инициирован.');
-    }).catch(error => {
-        isPlaying = false;
-        updateButtonState();
-        statusText.textContent = 'Ошибка воспроизведения';
-        playPauseButton.disabled = false;
-        console.error('Ошибка при запуске аудио (возможно, пользователь не разрешил автовоспроизведение):', error);
-        // Дополнительное предупреждение для пользователя, если ошибка из-за политики браузера
-        if (error.name === "NotAllowedError") {
-             alert('Для воспроизведения звука необходимо ваше взаимодействие с страницей. Попробуйте еще раз нажать кнопку.');
-        } else {
-             alert('Не удалось начать воспроизведение. Проверьте ваше подключение или попробуйте позже.');
-        }
-    });
-}
-
-function stopPlayback() {
-    if (audio) {
-        audio.pause();
-        // Очищаем источник, чтобы сбросить поток и предотвратить дальнейшую буферизацию
-        audio.src = ''; 
-        audio.load();   // Загружаем пустой источник, чтобы убедиться в остановке
-        isPlaying = false;
-        updateButtonState();
-        statusText.textContent = 'Остановлено';
-        console.log('Аудио поток остановлен.');
-    }
-}
-
-function updateButtonState() {
-    if (isPlaying) {
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'inline';
-    } else {
-        playIcon.style.display = 'inline';
-        pauseIcon.style.display = 'none';
-    }
-}
-
-playPauseButton.addEventListener('click', () => {
-    if (isPlaying) {
-        stopPlayback();
-    } else {
-        startPlayback();
-    }
-});
-
-// Инициализация состояния кнопки при загрузке страницы
-updateButtonState();
-
-// Регистрация Service Worker
+// 1. Регистрация Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js') // Убедитесь, что путь правильный
+        navigator.serviceWorker.register('/service-worker.js')
             .then(registration => {
-                console.log('Service Worker registered with scope:', registration.scope);
+                console.log('Service Worker зарегистрирован с областью видимости:', registration.scope);
             })
             .catch(error => {
-                console.error('Service Worker registration failed:', error);
+                console.error('Ошибка при регистрации Service Worker:', error);
             });
     });
 }
+
+// 2. Логика Музыкального Плеера
+document.addEventListener('DOMContentLoaded', () => {
+    const radioPlayer = document.getElementById('radioPlayer');
+    const togglePlayPauseButton = document.getElementById('togglePlayPause');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let isPlaying = false; // Отслеживаем состояние плеера
+
+    // Функция для обновления сообщения статуса и текста кнопки
+    function updateStatus(message, isError = false) {
+        statusMessage.textContent = message;
+        statusMessage.style.color = isError ? '#d9534f' : '#666'; // Красный для ошибок
+    }
+
+    // Обработчик события для кнопки воспроизведения/паузы
+    togglePlayPauseButton.addEventListener('click', () => {
+        if (isPlaying) {
+            radioPlayer.pause();
+            updateStatus('Радио остановлено.');
+            togglePlayPauseButton.textContent = 'Включить радио';
+            isPlaying = false;
+        } else {
+            updateStatus('Подключение к радио...');
+            togglePlayPauseButton.disabled = true; // Отключаем кнопку во время подключения
+
+            //Перезагрузка потока гарантирует, что мы пытаемся получить новый поток
+            // Это может быть полезно, если поток был прерван.
+            radioPlayer.load(); 
+            radioPlayer.play()
+                .then(() => {
+                    // Воспроизведение успешно начато
+                    updateStatus('Радио играет!');
+                    togglePlayPauseButton.textContent = 'Остановить радио';
+                    isPlaying = true;
+                    togglePlayPauseButton.disabled = false;
+                })
+                .catch(error => {
+                    // Ошибка воспроизведения (например, пользователь не дал разрешения или проблемы с сетью)
+                    console.error('Ошибка воспроизведения:', error);
+                    updateStatus('Не удалось воспроизвести радио. Попробуйте снова.', true);
+                    togglePlayPauseButton.textContent = 'Включить радио';
+                    isPlaying = false;
+                    togglePlayPauseButton.disabled = false;
+                });
+        }
+    });
+
+    // Добавляем обработчики событий для статуса аудиоплеера
+    radioPlayer.addEventListener('playing', () => {
+        updateStatus('Радио играет!');
+        togglePlayPauseButton.textContent = 'Остановить радио';
+        isPlaying = true;
+        togglePlayPauseButton.disabled = false;
+    });
+
+    radioPlayer.addEventListener('pause', () => {
+        if (!radioPlayer.ended) { // Обновляем статус, только если не конец потока (например, пользователь нажал паузу)
+            updateStatus('Радио остановлено.');
+            togglePlayPauseButton.textContent = 'Включить радио';
+            isPlaying = false;
+            togglePlayPauseButton.disabled = false;
+        }
+    });
+
+    radioPlayer.addEventListener('error', (e) => {
+        console.error('Audio Error:', e);
+        // Более детальная обработка ошибок на основе кода ошибки
+        let errorMessage = 'Ошибка воспроизведения.';
+        switch (e.target.error.code) {
+            case e.target.error.MEDIA_ERR_ABORTED:
+                errorMessage = 'Воспроизведение прервано пользователем.';
+                break;
+            case e.target.error.MEDIA_ERR_NETWORK:
+                errorMessage = 'Ошибка сети. Проверьте ваше соединение.';
+                break;
+            case e.target.error.MEDIA_ERR_DECODE:
+                errorMessage = 'Ошибка декодирования аудио. Поток поврежден или не поддерживается.';
+                break;
+            case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                errorMessage = 'Формат аудио не поддерживается вашим браузером.';
+                break;
+            default:
+                errorMessage = 'Неизвестная ошибка воспроизведения.';
+                break;
+        }
+        updateStatus(errorMessage + ' Попробуйте снова.', true);
+        togglePlayPauseButton.textContent = 'Включить радио';
+        isPlaying = false;
+        togglePlayPauseButton.disabled = false;
+    });
+
+    radioPlayer.addEventListener('waiting', () => {
+        updateStatus('Буферизация...');
+        togglePlayPauseButton.disabled = true; // Отключаем кнопку во время буферизации
+    });
+
+    radioPlayer.addEventListener('stalled', () => {
+        updateStatus('Соединение прервано. Попытка восстановить...');
+        togglePlayPauseButton.disabled = true;
+    });
+
+    radioPlayer.addEventListener('ended', () => {
+        updateStatus('Поток завершен.');
+        togglePlayPauseButton.textContent = 'Включить радио';
+        isPlaying = false;
+        togglePlayPauseButton.disabled = false;
+    });
+
+    // Начальный статус при загрузке страницы
+    updateStatus('Нажмите "Включить радио" для начала прослушивания.');
+});

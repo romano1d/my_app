@@ -15,91 +15,22 @@
     <!-- Дополнительные мета-теги для iOS (опционально, но полезно для поведения PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Музыкальный КЛЮЧ"> <!-- Обновлено, чтобы соответствовать названию приложения -->
-
-    <!-- Встроенные стили для иконок Play/Pause, если их нет в style.css -->
-    <!-- Если у вас эти стили уже есть в style.css, этот блок не нужен -->
-    <style>
-        .icon {
-            display: inline-block;
-        }
-        #playIcon { display: inline; } /* По умолчанию показываем иконку Play */
-        #pauseIcon { display: none; } /* По умолчанию скрываем иконку Pause */
-
-        /* Стили для кнопки, если они не в style.css */
-        #togglePlayPause {
-            background-color: #3498db; /* Используем theme_color из manifest */
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            font-size: 3em;
-            cursor: pointer;
-            outline: none;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-            display: flex; /* Для центрирования иконок */
-            justify-content: center;
-            align-items: center;
-            margin: 20px auto; /* Для центрирования кнопки */
-        }
-        #togglePlayPause:hover:not(:disabled) {
-            background-color: #217dbb;
-        }
-        #togglePlayPause:active:not(:disabled) {
-            transform: scale(0.98);
-        }
-        #togglePlayPause:disabled {
-            background-color: #8bbceb; /* Светлее для отключенного состояния */
-            cursor: not-allowed;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 350px;
-            width: 100%;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f2f5; /* Используем background_color из manifest */
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-        #statusMessage {
-            margin-top: 15px;
-            font-size: 1.1em;
-            color: #555;
-        }
-    </style>
-
+    <meta name="apple-mobile-web-app-title" content="Радио">
 </head>
 <body>
     <div class="container">
         <h1>Музыкальный КЛЮЧ</h1>
 
-        <!-- Аудиоплеер: удален, управление через JS -->
+        <!-- Аудиоплеер: используем прямой поток -->
+        <audio id="radioPlayer" preload="auto">
+            <source src="https://myradio24.org/52340" type="audio/aac">
+            Ваш браузер не поддерживает элемент аудио.
+        </audio>
 
-        <button id="togglePlayPause">
-            <!-- Иконки Play и Pause -->
-            <span id="playIcon" class="icon">&#9658;</span> <!-- Символ "►" -->
-            <span id="pauseIcon" class="icon">&#10074;&#10074;</span> <!-- Символ "❚❚" -->
-        </button>
+        <button id="togglePlayPause">Включить радио</button>
         <p id="statusMessage" class="status">Ожидание...</p>
 
+        <!-- Инструкция по установке виджета удалена, как вы и просили -->
     </div>
 
     <!-- Подключение JavaScript в конце body для лучшей производительности -->
