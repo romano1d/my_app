@@ -1,126 +1,94 @@
-// script.js
-
-// 1. Регистрация Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-                console.log('Service Worker зарегистрирован с областью видимости:', registration.scope);
-            })
-            .catch(error => {
-                console.error('Ошибка при регистрации Service Worker:', error);
-            });
-    });
-}
-
-// 2. Логика Музыкального Плеера
 document.addEventListener('DOMContentLoaded', () => {
     const radioPlayer = document.getElementById('radioPlayer');
     const togglePlayPauseButton = document.getElementById('togglePlayPause');
     const statusMessage = document.getElementById('statusMessage');
 
-    let isPlaying = false; // Отслеживаем состояние плеера
+    let isPlaying = false; // Track player state
 
-    // Функция для обновления сообщения статуса и текста кнопки
-    function updateStatus(message, isError = false) {
-        statusMessage.textContent = message;
-        statusMessage.style.color = isError ? '#d9534f' : '#666'; // Красный для ошибок
+    // --- Service Worker Registration ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker зарегистрирован:', registration.scope);
+                    statusMessage.textContent = 'Приложение готово.';
+                })
+                .catch(error => {
+                    console.error('Ошибка регистрации Service Worker:', error);
+                    statusMessage.textContent = 'Ошибка загрузки приложения.';
+                });
+        });
+    } else {
+        console.warn('Service Workers не поддерживаются в этом браузере.');
+        statusMessage.textContent = 'Ваш браузер не поддерживает автономный режим.';
     }
 
-    // Обработчик события для кнопки воспроизведения/паузы
+    // --- Audio Player Logic ---
     togglePlayPauseButton.addEventListener('click', () => {
         if (isPlaying) {
             radioPlayer.pause();
-            updateStatus('Радио остановлено.');
-            togglePlayPauseButton.textContent = 'Включить радио';
-            isPlaying = false;
         } else {
-            updateStatus('Подключение к радио...');
-            togglePlayPauseButton.disabled = true; // Отключаем кнопку во время подключения
-
-            //Перезагрузка потока гарантирует, что мы пытаемся получить новый поток
-            // Это может быть полезно, если поток был прерван.
-            radioPlayer.load(); 
-            radioPlayer.play()
-                .then(() => {
-                    // Воспроизведение успешно начато
-                    updateStatus('Радио играет!');
-                    togglePlayPauseButton.textContent = 'Остановить радио';
-                    isPlaying = true;
-                    togglePlayPauseButton.disabled = false;
-                })
-                .catch(error => {
-                    // Ошибка воспроизведения (например, пользователь не дал разрешения или проблемы с сетью)
-                    console.error('Ошибка воспроизведения:', error);
-                    updateStatus('Не удалось воспроизвести радио. Попробуйте снова.', true);
-                    togglePlayPauseButton.textContent = 'Включить радио';
+            // Handle play promise to catch errors (e.g., user not interacting first)
+            const playPromise = radioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("Ошибка при попытке воспроизведения:", error);
+                    statusMessage.textContent = 'Ошибка воспроизведения. Пожалуйста, попробуйте еще раз.';
                     isPlaying = false;
-                    togglePlayPauseButton.disabled = false;
+                    togglePlayPauseButton.textContent = 'Включить радио';
                 });
+            }
         }
     });
 
-    // Добавляем обработчики событий для статуса аудиоплеера
-    radioPlayer.addEventListener('playing', () => {
-        updateStatus('Радио играет!');
-        togglePlayPauseButton.textContent = 'Остановить радио';
+    radioPlayer.addEventListener('play', () => {
         isPlaying = true;
-        togglePlayPauseButton.disabled = false;
+        togglePlayPauseButton.textContent = 'Выключить радио';
+        statusMessage.textContent = 'Радио играет...';
     });
 
     radioPlayer.addEventListener('pause', () => {
-        if (!radioPlayer.ended) { // Обновляем статус, только если не конец потока (например, пользователь нажал паузу)
-            updateStatus('Радио остановлено.');
-            togglePlayPauseButton.textContent = 'Включить радио';
-            isPlaying = false;
-            togglePlayPauseButton.disabled = false;
-        }
-    });
-
-    radioPlayer.addEventListener('error', (e) => {
-        console.error('Audio Error:', e);
-        // Более детальная обработка ошибок на основе кода ошибки
-        let errorMessage = 'Ошибка воспроизведения.';
-        switch (e.target.error.code) {
-            case e.target.error.MEDIA_ERR_ABORTED:
-                errorMessage = 'Воспроизведение прервано пользователем.';
-                break;
-            case e.target.error.MEDIA_ERR_NETWORK:
-                errorMessage = 'Ошибка сети. Проверьте ваше соединение.';
-                break;
-            case e.target.error.MEDIA_ERR_DECODE:
-                errorMessage = 'Ошибка декодирования аудио. Поток поврежден или не поддерживается.';
-                break;
-            case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                errorMessage = 'Формат аудио не поддерживается вашим браузером.';
-                break;
-            default:
-                errorMessage = 'Неизвестная ошибка воспроизведения.';
-                break;
-        }
-        updateStatus(errorMessage + ' Попробуйте снова.', true);
-        togglePlayPauseButton.textContent = 'Включить радио';
         isPlaying = false;
-        togglePlayPauseButton.disabled = false;
+        togglePlayPauseButton.textContent = 'Включить радио';
+        statusMessage.textContent = 'Радио на паузе.';
     });
 
     radioPlayer.addEventListener('waiting', () => {
-        updateStatus('Буферизация...');
-        togglePlayPauseButton.disabled = true; // Отключаем кнопку во время буферизации
+        statusMessage.textContent = 'Буферизация...';
     });
 
     radioPlayer.addEventListener('stalled', () => {
-        updateStatus('Соединение прервано. Попытка восстановить...');
-        togglePlayPauseButton.disabled = true;
+        statusMessage.textContent = 'Поток остановлен. Проверьте соединение.';
     });
-
-    radioPlayer.addEventListener('ended', () => {
-        updateStatus('Поток завершен.');
-        togglePlayPauseButton.textContent = 'Включить радио';
+    
+    radioPlayer.addEventListener('error', (e) => {
+        console.error('Ошибка аудиоплеера:', e);
         isPlaying = false;
-        togglePlayPauseButton.disabled = false;
+        togglePlayPauseButton.textContent = 'Включить радио';
+        let errorMessage = 'Ошибка воспроизведения радио.';
+        // More specific error handling based on MediaError.code
+        if (radioPlayer.error) {
+            switch (radioPlayer.error.code) {
+                case radioPlayer.error.MEDIA_ERR_ABORTED:
+                    errorMessage = 'Воспроизведение прервано пользователем.';
+                    break;
+                case radioPlayer.error.MEDIA_ERR_NETWORK:
+                    errorMessage = 'Ошибка сети. Проверьте подключение к Интернету.';
+                    break;
+                case radioPlayer.error.MEDIA_ERR_DECODE:
+                    errorMessage = 'Ошибка декодирования аудио. Поток поврежден или не поддерживается.';
+                    break;
+                case radioPlayer.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    errorMessage = 'Аудиоформат не поддерживается вашим браузером или поток недоступен.';
+                    break;
+                default:
+                    errorMessage = 'Неизвестная ошибка воспроизведения.';
+                    break;
+            }
+        }
+        statusMessage.textContent = errorMessage;
     });
 
-    // Начальный статус при загрузке страницы
-    updateStatus('Нажмите "Включить радио" для начала прослушивания.');
+    // Initial status update
+    statusMessage.textContent = 'Нажмите "Включить радио" для начала.';
 });

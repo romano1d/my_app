@@ -3,68 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Музыкальный Ключ</title>
-
-    <!-- PWA meta tags -->
-    <meta name="theme-color" content="#BB86FC">
+    <title>Музыкальный КЛЮЧ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192x192.png">
+    
+    <!-- Apple Touch Icons для iOS PWA -->
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167x167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+    <!-- Дополнительные мета-теги для iOS (опционально, но полезно для поведения PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Музыка">
-
-    <!-- Manifest link -->
-    <link rel="manifest" href="/manifest.json">
-
-    <!-- Apple Touch Icons (для iOS, чтобы приложение выглядело как нативное при добавлении на главный экран) -->
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
-
-    <!-- Стандартный favicon (опционально, т.к. manifest покрывает большинство случаев) -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
-
-    <link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-title" content="Радио">
 </head>
 <body>
-    <header>
-        <h1>Музыкальный Ключ</h1>
-    </header>
+    <div class="container">
+        <h1>Музыкальный КЛЮЧ</h1>
 
-    <main>
-        <section id="radio-player">
-            <h2>Радио Онлайн</h2>
-            <audio id="audioPlayer" controls>
-                <source src="https://myradio24.org/52340">
-                Ваш браузер не поддерживает аудио элемент.
-            </audio>
-            <button id="playPauseButton">Воспроизвести</button>
-            <p id="playerStatus">Остановлено</p>
-        </section>
+        <!-- Аудиоплеер: используем прямой поток -->
+        <audio id="radioPlayer" preload="auto">
+            <source src="https - FORBIDDEN - myradio24.org/52340" type="audio/aac">
+            Ваш браузер не поддерживает элемент аудио.
+        </audio>
 
-        <!-- Дополнительные разделы для музыкальных инструментов и т.д. -->
-        <section id="tools">
-            <h2>Инструменты для Музыкантов</h2>
-            <p>Здесь будут размещены полезные инструменты (метроном, тюнер и т.д.).</p>
-        </section>
-    </main>
+        <button id="togglePlayPause">Включить радио</button>
+        <p id="statusMessage" class="status">Ожидание...</p>
 
-    <footer>
-        <p>&copy; 2023 Музыкальный Ключ</p>
-    </footer>
+        <!-- Инструкция по установке виджета удалена, как вы и просили -->
+    </div>
 
-    <scriptsrc="script.js"></script>
-    <script>
-        // Регистрация Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker зарегистрирован успешно:', registration);
-                    })
-                    .catch(error => {
-                        console.error('Ошибка регистрации Service Worker:', error);
-                    });
-            });
-        }
-    </script>
+    <!-- Подключение JavaScript в конце body для лучшей производительности -->
+    <script src="script.js"></script>
 </body>
 </html>
